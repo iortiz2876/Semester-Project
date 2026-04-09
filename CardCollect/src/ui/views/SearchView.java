@@ -27,7 +27,10 @@ public class SearchView extends JPanel {
 
         JPanel searchBar = new JPanel(new BorderLayout(5, 5));
         searchBar.setBackground(new Color(40, 40, 50));
-        searchBar.add(new JLabel("  Card Name: "), BorderLayout.WEST);
+        JLabel cardNameLabel = new JLabel("  CardName:  ");
+        cardNameLabel.setForeground(Color.WHITE);
+        searchBar.add(cardNameLabel, BorderLayout.WEST);
+       // searchBar.add(new JLabel("  Card Name: "), BorderLayout.WEST);
         searchBar.add(searchField, BorderLayout.CENTER);
         searchBar.add(searchButton, BorderLayout.EAST);
         searchBar.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));

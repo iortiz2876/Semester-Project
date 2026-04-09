@@ -31,7 +31,7 @@ public class MainFrame extends JFrame {
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         sidebar.add(titleLabel);
 
-        sidebar.add(createSidebarButton("🔍  Search", "search"));
+        sidebar.add(createSidebarButton("🔎  Search", "search"));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
         sidebar.add(createSidebarButton("⭐  My Collection", "collection"));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
@@ -67,7 +67,18 @@ public class MainFrame extends JFrame {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setFont(new Font("Arial", Font.PLAIN, 13));
+
+        //have the emojis load on all different types of OS
+        String[] emojiFonts = {"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji"};
+        Font emojiFont = new Font("Arial", Font.PLAIN, 13);
+        for (String name : emojiFonts) {
+            Font f = new Font(name, Font.PLAIN, 13);
+            if (!f.getFamily().equals("Dialog")) {
+                emojiFont = f;
+                break;
+            }
+        }
+        button.setFont(emojiFont);
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent e) {
