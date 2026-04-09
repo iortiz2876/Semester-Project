@@ -33,7 +33,7 @@ public class MainFrame extends JFrame {
 
         sidebar.add(createSidebarButton("🔎  Search", "search"));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
-        sidebar.add(createSidebarButton("⭐  My Collection", "collection"));
+        sidebar.add(createSidebarButton("⭐  MyCollection", "collection"));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
         sidebar.add(createSidebarButton("❤️  WishList", "wishlist"));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
