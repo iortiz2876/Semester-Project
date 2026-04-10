@@ -47,7 +47,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(new SearchView(this), "search");
         contentPanel.add(new CollectionView(), "collection");
         contentPanel.add(new WishlistView(), "wishlist");
-        contentPanel.add(new SetsView(), "sets");
+        contentPanel.add(new SetsView(this), "sets");
         contentPanel.add(new PricesView(), "prices");
 
         setLayout(new BorderLayout());

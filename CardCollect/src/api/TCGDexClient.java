@@ -93,6 +93,9 @@ public class TCGDexClient {
         return new ImageIcon(scaled);
     }
 
+
+  
+
     // Parse name, imageUrl, and id from JSON response
     private static List<String[]> parseCardData(String json) {
         List<String[]> results = new ArrayList<>();
@@ -120,5 +123,148 @@ public class TCGDexClient {
         }
 
         return results;
+    }
+
+    // Get all sets - returns list of [id, name, logoUrl, cardCount]
+    public static List<String[]> getAllSets() throws Exception {
+        String url = BASE_URL + "/sets";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return parseSetList(response.body());
+    }
+
+    // Get all cards in a set with images loaded in parallel
+    public static List<CardResult> getSetCards(String setId) throws Exception {
+        String url = BASE_URL + "/sets/" + setId;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return parseSetCards(response.body());
+    }
+
+    // Get market price string for a card ID (e.g. "$5.00" or "—")
+    public static String getCardMarketPrice(String cardId) throws Exception {
+        String json = getCardDetails(cardId);
+        try {
+            // Try "normal" pricing first, then "holofoil"
+            for (String variant : new String[]{"normal", "holofoil", "reverseHolofoil"}) {
+                int variantIdx = json.indexOf("\"" + variant + "\"");
+                if (variantIdx == -1) continue;
+                int braceStart = json.indexOf("{", variantIdx);
+                int braceEnd = json.indexOf("}", braceStart);
+                if (braceStart == -1 || braceEnd == -1) continue;
+                String nested = json.substring(braceStart + 1, braceEnd);
+                int mIdx = nested.indexOf("\"marketPrice\":");
+                if (mIdx == -1) continue;
+                int start = mIdx + 14;
+                int end = nested.indexOf(",", start);
+                if (end == -1) end = nested.length();
+                String price = nested.substring(start, end).trim();
+                if (!price.equals("null") && !price.isEmpty()) {
+                    return "$" + price;
+                }
+            }
+        } catch (Exception e) { /* ignore */ }
+        return "—";
+    }
+
+    private static List<String[]> parseSetList(String json) {
+        List<String[]> results = new ArrayList<>();
+        String[] parts = json.split("(?=\\{)");
+        for (String part : parts) {
+            if (!part.contains("\"name\"")) continue;
+            try {
+                String id    = extractSimpleStringField(part, "id");
+                String name  = extractSimpleStringField(part, "name");
+                String logo  = extractSimpleStringField(part, "logo");
+                String total = extractNestedNumberField(part, "cardCount", "total");
+                if (!id.isEmpty() && !name.isEmpty()) {
+                    results.add(new String[]{id, name, logo, total});
+                }
+            } catch (Exception e) { /* skip */ }
+        }
+        return results;
+    }
+
+    private static List<CardResult> parseSetCards(String json) {
+        List<String[]> cardData = new ArrayList<>();
+        int cardsIdx = json.indexOf("\"cards\"");
+        if (cardsIdx == -1) return new ArrayList<>();
+        int arrayStart = json.indexOf("[", cardsIdx);
+        int arrayEnd   = json.lastIndexOf("]");
+        if (arrayStart == -1 || arrayEnd == -1) return new ArrayList<>();
+        String cardsJson = json.substring(arrayStart + 1, arrayEnd);
+
+        String[] parts = cardsJson.split("(?=\\{)");
+        for (String part : parts) {
+            if (!part.contains("\"name\"")) continue;
+            try {
+                String id    = extractSimpleStringField(part, "id");
+                String name  = extractSimpleStringField(part, "name");
+                String image = extractSimpleStringField(part, "image");
+                if (!id.isEmpty()) cardData.add(new String[]{name, image, id});
+            } catch (Exception e) { /* skip */ }
+        }
+
+        List<Future<CardResult>> futures = new ArrayList<>();
+        for (String[] data : cardData) {
+            final String cardName = data[0], imageUrl = data[1], cardId = data[2];
+            futures.add(executor.submit(() -> {
+                try {
+                    ImageIcon icon = getCardImage(imageUrl);
+                    return new CardResult(cardName, cardId, icon);
+                } catch (Exception e) {
+                    return new CardResult(cardName, cardId, null);
+                }
+            }));
+        }
+
+        List<CardResult> results = new ArrayList<>();
+        for (Future<CardResult> f : futures) {
+            try {
+                results.add(f.get(5, TimeUnit.SECONDS));
+            } catch (TimeoutException e) {
+                System.out.println("Image timed out, skipping.");
+            } catch (Exception e) {
+                System.out.println("Error loading card: " + e.getMessage());
+            }
+        }
+        return results;
+    }
+
+    private static String extractSimpleStringField(String json, String field) {
+        String key = "\"" + field + "\":\"";
+        int idx = json.indexOf(key);
+        if (idx == -1) return "";
+        int start = idx + key.length();
+        int end = json.indexOf("\"", start);
+        if (end == -1) return "";
+        return json.substring(start, end);
+    }
+
+    private static String extractNestedNumberField(String json, String parent, String field) {
+        try {
+            int parentIdx = json.indexOf("\"" + parent + "\":{");
+            if (parentIdx == -1) return "0";
+            int braceStart = json.indexOf("{", parentIdx);
+            int braceEnd   = json.indexOf("}", braceStart);
+            String nested  = json.substring(braceStart + 1, braceEnd);
+            String key = "\"" + field + "\":";
+            int idx = nested.indexOf(key);
+            if (idx == -1) return "0";
+            int start = idx + key.length();
+            int end = nested.indexOf(",", start);
+            if (end == -1) end = nested.length();
+            return nested.substring(start, end).trim();
+        } catch (Exception e) {
+            return "0";
+        }
     }
 }
