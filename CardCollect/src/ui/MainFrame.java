@@ -10,7 +10,7 @@ public class MainFrame extends JFrame {
     private CardLayout cardLayout;
 
     public MainFrame() {
-        setTitle("Pokémon TCG Browser");
+        setTitle("Card Collect");
         setSize(1100, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -24,7 +24,7 @@ public class MainFrame extends JFrame {
         sidebar.setPreferredSize(new Dimension(180, getHeight()));
         sidebar.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
 
-        JLabel titleLabel = new JLabel("TCG Browser");
+        JLabel titleLabel = new JLabel("Card Collect");
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
