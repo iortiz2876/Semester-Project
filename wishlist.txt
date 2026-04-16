@@ -1,1 +1,4 @@
 ecard2-66|Wooper|https://assets.tcgdex.net/en/ecard/ecard2/66|Uncommon|—
+sm12-225|Mega Lopunny & Jigglypuff GX|https://assets.tcgdex.net/en/sm/sm12/225|Ultra Rare|—
+sm115-41|Jigglypuff|https://assets.tcgdex.net/en/sm/sm115/41|Common|—
+base4-30|Snorlax|https://assets.tcgdex.net/en/base/base4/30|Rare|—

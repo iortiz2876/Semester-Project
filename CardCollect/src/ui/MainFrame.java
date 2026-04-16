@@ -1,5 +1,7 @@
 package ui;
 
+import model.User;
+import storage.CardStorage;
 import ui.views.*;
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +16,29 @@ public class MainFrame extends JFrame {
         setSize(1100, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        initComponents();
+
+        showLogin();
+    }
+
+    private void showLogin() {
+        LoginView loginView = new LoginView(user -> {
+            CardStorage.setCurrentUser(user.id);
+            getContentPane().removeAll();
+            initComponents();
+            revalidate();
+            repaint();
+        });
+
+        setLayout(new BorderLayout());
+        add(loginView, BorderLayout.CENTER);
+    }
+
+    private void logout() {
+        CardStorage.setCurrentUser(null);
+        getContentPane().removeAll();
+        showLogin();
+        revalidate();
+        repaint();
     }
 
     private void initComponents() {
@@ -31,22 +55,60 @@ public class MainFrame extends JFrame {
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         sidebar.add(titleLabel);
 
-        sidebar.add(createSidebarButton("🔎  Search", "search"));
+        // Store references to collection and wishlist views so we can refresh them
+        CollectionView collectionView = new CollectionView();
+        WishlistView wishlistView = new WishlistView();
+
+        sidebar.add(createSidebarButton("🔎  Search", "search", null));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
-        sidebar.add(createSidebarButton("⭐  My Collection", "collection"));
+        sidebar.add(createSidebarButton("⭐  My Collection", "collection", collectionView::refresh));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
-        sidebar.add(createSidebarButton("❤️  WishList", "wishlist"));
+        sidebar.add(createSidebarButton("❤️  WishList", "wishlist", wishlistView::refresh));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
-        sidebar.add(createSidebarButton("📦  Browse Sets", "sets"));
+        sidebar.add(createSidebarButton("📦  Browse Sets", "sets", null));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
-        sidebar.add(createSidebarButton("💰  Prices", "prices"));
+        sidebar.add(createSidebarButton("💰  Prices", "prices", null));
+
         sidebar.add(Box.createVerticalGlue());
+
+        JButton logoutButton = new JButton("🚪  Logout");
+        logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        logoutButton.setMaximumSize(new Dimension(160, 45));
+        logoutButton.setPreferredSize(new Dimension(160, 45));
+        logoutButton.setBackground(new Color(140, 50, 50));
+        logoutButton.setForeground(Color.WHITE);
+        logoutButton.setFocusPainted(false);
+        logoutButton.setBorderPainted(false);
+        logoutButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        String[] emojiFonts = {"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji"};
+        Font emojiFont = new Font("Arial", Font.PLAIN, 13);
+        for (String name : emojiFonts) {
+            Font f = new Font(name, Font.PLAIN, 13);
+            if (!f.getFamily().equals("Dialog")) {
+                emojiFont = f;
+                break;
+            }
+        }
+        logoutButton.setFont(emojiFont);
+
+        logoutButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                logoutButton.setBackground(new Color(170, 70, 70));
+            }
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                logoutButton.setBackground(new Color(140, 50, 50));
+            }
+        });
+
+        logoutButton.addActionListener(e -> logout());
+        sidebar.add(logoutButton);
 
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.add(new SearchView(this), "search");
-        contentPanel.add(new CollectionView(), "collection");
-        contentPanel.add(new WishlistView(), "wishlist");
+        contentPanel.add(collectionView, "collection");
+        contentPanel.add(wishlistView, "wishlist");
         contentPanel.add(new SetsView(this), "sets");
         contentPanel.add(new PricesView(), "prices");
 
@@ -57,7 +119,9 @@ public class MainFrame extends JFrame {
         cardLayout.show(contentPanel, "search");
     }
 
-    private JButton createSidebarButton(String text, String viewName) {
+    // Updated to accept an optional Runnable that fires when the button is clicked,
+    // used to refresh collection/wishlist views when switching to them
+    private JButton createSidebarButton(String text, String viewName, Runnable onSwitch) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setMaximumSize(new Dimension(160, 45));
@@ -68,7 +132,6 @@ public class MainFrame extends JFrame {
         button.setBorderPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        //have the emojis load on all different types of OS
         String[] emojiFonts = {"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji"};
         Font emojiFont = new Font("Arial", Font.PLAIN, 13);
         for (String name : emojiFonts) {
@@ -89,8 +152,11 @@ public class MainFrame extends JFrame {
             }
         });
 
+        button.addActionListener(e -> {
+            cardLayout.show(contentPanel, viewName);
+            if (onSwitch != null) onSwitch.run();
+        });
 
-        button.addActionListener(e -> cardLayout.show(contentPanel, viewName));
         return button;
     }
 }
