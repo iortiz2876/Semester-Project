@@ -53,6 +53,19 @@ public class UserStorage {
         return loadUsers().stream().anyMatch(u -> u.username.equalsIgnoreCase(username));
     }
 
+    public static List<User> getAllUsers() {
+        return new ArrayList<>(loadUsers());
+    }
+
+    public static User findById(String id) {
+        for (User user : loadUsers()) {
+            if (user.id.equals(id)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
     // -------------------------
     // File helpers
     // -------------------------

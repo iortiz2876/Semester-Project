@@ -10,7 +10,7 @@ import java.awt.*;
 public class CardPanel extends JPanel {
 
     public CardPanel(CardResult card, JFrame parentFrame) {
-        // BorderLayout with 5px gaps so the image and name label have a little breathing room
+        //borderLayout with 5px gaps so the image and name label have a little breathing room
         setLayout(new BorderLayout(5, 5));
         setBackground(new Color(55, 55, 70)); // dark slate, matches the rest of the app's theme
         setPreferredSize(new Dimension(180, 270)); // fixed tile size so the grid stays uniform

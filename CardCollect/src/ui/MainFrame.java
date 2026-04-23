@@ -10,6 +10,7 @@ public class MainFrame extends JFrame {
 
     private JPanel contentPanel;
     private CardLayout cardLayout;
+    private User currentUser;
 
     public MainFrame() {
         setTitle("Card Collect");
@@ -22,6 +23,7 @@ public class MainFrame extends JFrame {
 
     private void showLogin() {
         LoginView loginView = new LoginView(user -> {
+            currentUser = user;
             CardStorage.setCurrentUser(user.id);
             getContentPane().removeAll();
             initComponents();
@@ -34,6 +36,7 @@ public class MainFrame extends JFrame {
     }
 
     private void logout() {
+        currentUser = null;
         CardStorage.setCurrentUser(null);
         getContentPane().removeAll();
         showLogin();
@@ -58,6 +61,7 @@ public class MainFrame extends JFrame {
         // Store references to collection and wishlist views so we can refresh them
         CollectionView collectionView = new CollectionView();
         WishlistView wishlistView = new WishlistView();
+        MessagesView messagesView = new MessagesView(currentUser);
 
         sidebar.add(createSidebarButton("🔎  Search", "search", null));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
@@ -65,13 +69,15 @@ public class MainFrame extends JFrame {
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
         sidebar.add(createSidebarButton("❤️  WishList", "wishlist", wishlistView::refresh));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
+        sidebar.add(createSidebarButton("💬  Messages", "messages", messagesView::refreshUsers));
+        sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
         sidebar.add(createSidebarButton("📦  Browse Sets", "sets", null));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
         sidebar.add(createSidebarButton("💰  Prices", "prices", null));
 
         sidebar.add(Box.createVerticalGlue());
 
-        JButton logoutButton = new JButton("🚪  Logout");
+        JButton logoutButton = new JButton("✖️  Logout");
         logoutButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         logoutButton.setMaximumSize(new Dimension(160, 45));
         logoutButton.setPreferredSize(new Dimension(160, 45));
@@ -109,6 +115,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(new SearchView(this), "search");
         contentPanel.add(collectionView, "collection");
         contentPanel.add(wishlistView, "wishlist");
+        contentPanel.add(messagesView, "messages");
         contentPanel.add(new SetsView(this), "sets");
         contentPanel.add(new PricesView(), "prices");
 
@@ -116,7 +123,8 @@ public class MainFrame extends JFrame {
         add(sidebar, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
 
-        cardLayout.show(contentPanel, "search");
+
+        //cardLayout.show(contentPanel, "search");
     }
 
     // Updated to accept an optional Runnable that fires when the button is clicked,
