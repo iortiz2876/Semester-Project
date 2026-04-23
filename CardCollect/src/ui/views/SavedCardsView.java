@@ -1,10 +1,14 @@
 package ui.views;
 
 import api.TCGDexClient;
+import model.CardResult;
 import model.SavedCard;
 import ui.WrapLayout;
+import ui.components.CardDetailDialog;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 // Shared base class for any view that displays a list of SavedCards in a scrollable grid
@@ -98,12 +102,16 @@ public abstract class SavedCardsView extends JPanel {
         panel.setBackground(new Color(55, 55, 70));
         panel.setPreferredSize(new Dimension(180, 300));
         panel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+        panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         // ─── Image (loaded asynchronously) ───────────────────────────
         // Start with a "Loading..." placeholder so the UI doesn't block on image downloads
         JLabel imageLabel = new JLabel("Loading...", SwingConstants.CENTER);
         imageLabel.setForeground(Color.LIGHT_GRAY);
         imageLabel.setPreferredSize(new Dimension(160, 220));
+
+        // Holds the image once loaded so the click handler can pass it to the detail dialog
+        ImageIcon[] loadedImage = {null};
 
         // SwingWorker does the download off the EDT and updates the label back on the EDT
         new SwingWorker<ImageIcon, Void>() {
@@ -114,13 +122,34 @@ public abstract class SavedCardsView extends JPanel {
             @Override
             protected void done() {
                 try {
-                    imageLabel.setIcon(get());
+                    ImageIcon icon = get();
+                    loadedImage[0] = icon;
+                    imageLabel.setIcon(icon);
                     imageLabel.setText(""); // clear the "Loading..." text
                 } catch (Exception e) {
                     imageLabel.setText("No image");
                 }
             }
         }.execute();
+
+        // ─── Click to open card detail dialog ────────────────────────
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Window ancestor = SwingUtilities.getWindowAncestor(panel);
+                JFrame parentFrame = (ancestor instanceof JFrame) ? (JFrame) ancestor : null;
+                CardResult cardResult = new CardResult(card.name, card.id, loadedImage[0]);
+                new CardDetailDialog(parentFrame, cardResult).setVisible(true);
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                panel.setBackground(new Color(75, 75, 95));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                panel.setBackground(new Color(55, 55, 70));
+            }
+        });
 
         // ─── Name label ──────────────────────────────────────────────
         JLabel nameLabel = new JLabel(card.name, SwingConstants.CENTER);
@@ -129,11 +158,12 @@ public abstract class SavedCardsView extends JPanel {
 
         // ─── Price label ─────────────────────────────────────────────
         // Show "Price N/A" if the price is missing or was stored as the em-dash placeholder
-        String price = (card.marketPrice == null || card.marketPrice.equals("—"))
-                ? "Price N/A" : card.marketPrice;
-        JLabel priceLabel = new JLabel(price, SwingConstants.CENTER);
-        priceLabel.setForeground(new Color(100, 220, 100)); // green to read as "money"
-        priceLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+
+
+
+
+
+
 
         // ─── Remove button ───────────────────────────────────────────
         JButton removeBtn = new JButton("Remove");
@@ -153,15 +183,15 @@ public abstract class SavedCardsView extends JPanel {
         // ─── Bottom panel: name, price, remove button stacked vertically ───
         JPanel bottom = new JPanel();
         bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
-        bottom.setBackground(new Color(55, 55, 70));
+        bottom.setOpaque(false); // transparent so hover colour from parent panel shows through
 
         // BoxLayout needs explicit alignment or children default to left-aligned
         nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        priceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+       // priceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         removeBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         bottom.add(nameLabel);
-        bottom.add(priceLabel);
+        //bottom.add(priceLabel);
         bottom.add(Box.createRigidArea(new Dimension(0, 4))); // small gap before the button
         bottom.add(removeBtn);
 

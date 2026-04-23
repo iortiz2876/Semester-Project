@@ -139,7 +139,8 @@ public class CardDetailDialog extends JDialog {
             panel.add(Box.createRigidArea(new Dimension(0, 12)));
             panel.add(makeSectionHeader("Weakness / Resistance"));
             panel.add(Box.createRigidArea(new Dimension(0, 6)));
-            panel.add(makeInfoRow("Weakness",   weakness));
+            panel.add(makeInfoRow("Weakness",   extractNestedField(json, "weaknesses", "type")));
+            panel.add(makeInfoRow("Weakness",   extractNestedField(json, "weaknesses", "value")));
             panel.add(makeInfoRow("Resistance", extractField(json, "resistances")));
             panel.add(makeInfoRow("Retreat",    extractField(json, "retreat")));
         }
@@ -149,13 +150,15 @@ public class CardDetailDialog extends JDialog {
         panel.add(makeSectionHeader("💰 Pricing (USD)"));
         panel.add(Box.createRigidArea(new Dimension(0, 6)));
 
+        String pricing = extractField(json, "pricing");
+                panel.add(makeInfoRow("avg",         extractNestedField(json, "cardmarket", "avg")));
+                panel.add(makeInfoRow("low",          extractNestedField(json, "cardmarket", "low")));
+                panel.add(makeInfoRow("trend",          extractNestedField(json, "cardmarket", "trend")));
 
         //***** MONEY *******
         // Prices live under the "normal" object in the JSON, so use the nested-field extractor
-        panel.add(makeInfoRow("Market Price", extractNestedField(json, "normal", "marketPrice")));
-        panel.add(makeInfoRow("Low",          extractNestedField(json, "normal", "lowPrice")));
-        panel.add(makeInfoRow("Mid",          extractNestedField(json, "normal", "midPrice")));
-        panel.add(makeInfoRow("High",         extractNestedField(json, "normal", "highPrice")));
+
+
 
         // ─── Bottom controls ─────────────────────────────────────────────
         // Vertical glue pushes the buttons to the bottom of the panel regardless of content above
