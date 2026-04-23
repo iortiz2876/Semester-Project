@@ -2,69 +2,94 @@ package ui.views;
 
 import api.TCGDexClient;
 import ui.WrapLayout;
+
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 // View that lets the user browse all available card sets, then drill into a set
 // to see its cards. Uses a CardLayout with two screens:
-//   - "setList"   → the grid of all sets (owned by this class)
-//   - "setDetail" → a SetDetailView that handles the paginated card grid
-//
-// The set detail screen used to live here too, but it was extracted into SetDetailView
-// so it could reuse PaginatedGridView for free.
+//   - "setList"   -> paginated grid of all sets
+//   - "setDetail" -> a SetDetailView that handles the paginated card grid
 public class SetsView extends JPanel {
 
-    private final JFrame parentFrame; // needed so detail dialogs can be modal to the main window
+    private static final int PAGE_SIZE = 15;
 
-    // CardLayout container that swaps between the set list and set detail screens
+    private final JFrame parentFrame;
+
     private final JPanel contentPanel;
     private final CardLayout contentLayout;
-
-    // Reusable set detail screen — created once and reused for every set the user clicks.
-    // loadSet() swaps its contents in place instead of building a new view each time.
     private final SetDetailView setDetailView;
+
+    // Current panel used for the "setList" card so we can replace it cleanly
+    private JPanel currentSetListPanel;
+
+    // Cached set data for pagination
+    private List<String[]> allSets = new ArrayList<>();
+    private int currentPage = 0;
 
     public SetsView(JFrame parentFrame) {
         this.parentFrame = parentFrame;
         setLayout(new BorderLayout());
         setBackground(new Color(40, 40, 50));
 
-        // CardLayout lets us swap between the set list and set detail views in place
         contentLayout = new CardLayout();
         contentPanel = new JPanel(contentLayout);
         contentPanel.setBackground(new Color(40, 40, 50));
 
-        // Build the set detail view once. Its "back" button just flips the CardLayout
-        // back to the set list — no re-fetch needed since we cached it.
-        setDetailView = new SetDetailView(parentFrame,
-                () -> contentLayout.show(contentPanel, "setList"));
+        // Set list placeholder first so startup always lands here
+        currentSetListPanel = buildLoadingPanel("Loading sets...");
+        contentPanel.add(currentSetListPanel, "setList");
+
+        // Reusable detail view
+        setDetailView = new SetDetailView(parentFrame, () -> {
+            long t = System.currentTimeMillis();
+            contentLayout.show(contentPanel, "setList");
+            contentPanel.revalidate();
+            contentPanel.repaint();
+            System.out.println("[TIMING] Back to setList show(): " + (System.currentTimeMillis() - t) + " ms");
+        });
         contentPanel.add(setDetailView, "setDetail");
 
-        // Show a loading placeholder immediately while the sets are fetched
-        contentPanel.add(buildLoadingPanel("Loading sets..."), "setList");
         add(contentPanel, BorderLayout.CENTER);
+
+        // Explicitly show the set list on startup
+        contentLayout.show(contentPanel, "setList");
 
         loadSets();
     }
 
     // -------------------------
-    // Set list view
+    // Data loading
     // -------------------------
 
-    // Kicks off an async fetch of all sets and swaps in the result (or an error panel) when done
     private void loadSets() {
+        long loadStart = System.currentTimeMillis();
+
         SwingWorker<List<String[]>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<String[]> doInBackground() throws Exception {
-                return TCGDexClient.getAllSets();
+                long apiStart = System.currentTimeMillis();
+                List<String[]> result = TCGDexClient.getAllSets();
+                long apiEnd = System.currentTimeMillis();
+                System.out.println("[TIMING] TCGDexClient.getAllSets(): " + (apiEnd - apiStart) + " ms");
+                return result;
             }
 
             @Override
             protected void done() {
                 try {
-                    displaySets(get());
+                    allSets = get();
+                    currentPage = 0;
+
+                    long displayStart = System.currentTimeMillis();
+                    showSetPage(0);
+                    long displayEnd = System.currentTimeMillis();
+
+                    System.out.println("[TIMING] first showSetPage(): " + (displayEnd - displayStart) + " ms");
+                    System.out.println("[TIMING] Total loadSets() end-to-end: " + (System.currentTimeMillis() - loadStart) + " ms");
                 } catch (Exception e) {
                     replaceSetList(buildErrorPanel("Failed to load sets: " + e.getMessage()));
                 }
@@ -73,30 +98,44 @@ public class SetsView extends JPanel {
         worker.execute();
     }
 
-    // Builds the set list screen from the fetched data and swaps it into the CardLayout
-    private void displaySets(List<String[]> sets) {
+    // -------------------------
+    // Pagination / rendering
+    // -------------------------
+
+    private void showSetPage(int page) {
+        if (allSets == null || allSets.isEmpty()) {
+            replaceSetList(buildErrorPanel("No sets found."));
+            return;
+        }
+
+        currentPage = page;
+
+        int totalPages = (int) Math.ceil((double) allSets.size() / PAGE_SIZE);
+        int from = page * PAGE_SIZE;
+        int to = Math.min(from + PAGE_SIZE, allSets.size());
+
+        long buildStart = System.currentTimeMillis();
+
         JPanel view = new JPanel(new BorderLayout());
         view.setBackground(new Color(40, 40, 50));
 
-        // Title bar with the total set count
-        JLabel title = new JLabel("📦 Browse Sets  (" + sets.size() + " sets)");
+        JLabel title = new JLabel("📦 Browse Sets  (" + allSets.size() + " sets)");
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Arial", Font.BOLD, 20));
         title.setBorder(BorderFactory.createEmptyBorder(20, 20, 15, 20));
         view.add(title, BorderLayout.NORTH);
 
-        // Wrapping grid of set tiles
         JPanel grid = new JPanel(new WrapLayout(FlowLayout.LEFT, 12, 12));
         grid.setBackground(new Color(40, 40, 50));
         grid.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
-        // Each set is a String[] of {id, name, logoUrl, cardCount} — flat array because
-        // that's what TCGDexClient returns. Could be cleaner as a small Set record.
-        for (String[] set : sets) {
+        for (int i = from; i < to; i++) {
+            String[] set = allSets.get(i);
             grid.add(buildSetPanel(set[0], set[1], set[2], set[3]));
         }
 
-        // Scrollable so long lists of sets don't overflow the window
+        System.out.println("[TIMING] build visible set tiles (" + (to - from) + "): " + (System.currentTimeMillis() - buildStart) + " ms");
+
         JScrollPane scroll = new JScrollPane(grid);
         scroll.setBorder(null);
         scroll.setBackground(new Color(40, 40, 50));
@@ -104,20 +143,74 @@ public class SetsView extends JPanel {
         scroll.getViewport().setBackground(new Color(40, 40, 50));
         view.add(scroll, BorderLayout.CENTER);
 
+        view.add(buildPaginationBar(totalPages), BorderLayout.SOUTH);
+
         replaceSetList(view);
     }
 
-    // Builds a single tile in the set list grid: logo on top, name + card count below
+    private JPanel buildPaginationBar(int totalPages) {
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 8));
+        bar.setBackground(new Color(30, 30, 40));
+        bar.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        JButton prev = makePagButton("← Prev");
+        prev.setEnabled(currentPage > 0);
+        prev.addActionListener(e -> showSetPage(currentPage - 1));
+
+        JLabel pageLabel = new JLabel(
+                "Page " + (currentPage + 1) + " of " + totalPages +
+                        "  (" + allSets.size() + " sets)"
+        );
+        pageLabel.setForeground(Color.WHITE);
+        pageLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        JButton next = makePagButton("Next →");
+        next.setEnabled(currentPage < totalPages - 1);
+        next.addActionListener(e -> showSetPage(currentPage + 1));
+
+        bar.add(prev);
+        bar.add(pageLabel);
+        bar.add(next);
+
+        return bar;
+    }
+
+    private JButton makePagButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setBackground(new Color(60, 60, 80));
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                if (btn.isEnabled()) {
+                    btn.setBackground(new Color(90, 90, 120));
+                }
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                btn.setBackground(new Color(60, 60, 80));
+            }
+        });
+
+        return btn;
+    }
+
+    // -------------------------
+    // Set tile
+    // -------------------------
+
     private JPanel buildSetPanel(String setId, String setName, String logoUrl, String cardCount) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(new Color(55, 55, 70));
-        panel.setPreferredSize(new Dimension(190, 135));
+        panel.setPreferredSize(new Dimension(190, 145));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 8, 10, 8));
         panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        // Reserved space for the logo — sized up front so the layout doesn't jump
-        // when the logo finishes loading asynchronously
         JLabel logoLabel = new JLabel("", SwingConstants.CENTER);
         logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         logoLabel.setPreferredSize(new Dimension(160, 60));
@@ -131,8 +224,7 @@ public class SetsView extends JPanel {
         nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel.add(nameLabel);
 
-        // Load the set logo asynchronously so the UI doesn't block on each image fetch.
-        // TCGDex returns a base URL without an extension, so we append ".png" ourselves.
+        // Only visible tiles load logos now, so pagination dramatically reduces startup cost
         if (!logoUrl.isEmpty()) {
             SwingWorker<ImageIcon, Void> logoWorker = new SwingWorker<>() {
                 @Override
@@ -150,35 +242,35 @@ public class SetsView extends JPanel {
                         panel.revalidate();
                         panel.repaint();
                     } catch (Exception e) {
-                        // Logo failed to load — silently leave the label blank
+                        // Leave blank if logo load fails
                     }
                 }
             };
             logoWorker.execute();
-        } else { //print the pokemon logo
+        } else {
             try {
                 URL url = getClass().getResource("/resources/images/pngimg.com - pokemon_logo_PNG3.png");
                 ImageIcon icon = new ImageIcon(url);
                 Image scaled = icon.getImage().getScaledInstance(160, 55, Image.SCALE_SMOOTH);
                 logoLabel.setIcon(new ImageIcon(scaled));
             } catch (Exception e) {
-                // Fallback image missing — leave the label blank
+                // Ignore fallback image failure
             }
         }
 
-
-
-        // Click the tile to drill into the set; hover effects show it's interactive
         panel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent e) {
-                // Tell the shared detail view to load this set and swap it into view
+                long t = System.currentTimeMillis();
                 setDetailView.loadSet(setId, setName);
                 contentLayout.show(contentPanel, "setDetail");
+                System.out.println("[TIMING] Open set detail click handler: " + (System.currentTimeMillis() - t) + " ms");
             }
+
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 panel.setBackground(new Color(80, 80, 100));
                 panel.setBorder(BorderFactory.createLineBorder(new Color(120, 120, 180), 2));
             }
+
             public void mouseExited(java.awt.event.MouseEvent e) {
                 panel.setBackground(new Color(55, 55, 70));
                 panel.setBorder(BorderFactory.createEmptyBorder(10, 8, 10, 8));
@@ -192,34 +284,41 @@ public class SetsView extends JPanel {
     // Helpers
     // -------------------------
 
-    // Generic centered "Loading..." panel used as a placeholder during async fetches
     private JPanel buildLoadingPanel(String message) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(40, 40, 50));
+
         JLabel label = new JLabel(message, SwingConstants.CENTER);
         label.setForeground(Color.LIGHT_GRAY);
         label.setFont(new Font("Arial", Font.PLAIN, 14));
+
         panel.add(label, BorderLayout.CENTER);
         return panel;
     }
 
-    // Generic centered error panel — same shape as the loading panel but with a red tint
     private JPanel buildErrorPanel(String message) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(40, 40, 50));
+
         JLabel label = new JLabel(message, SwingConstants.CENTER);
         label.setForeground(new Color(220, 80, 80));
         label.setFont(new Font("Arial", Font.PLAIN, 14));
+
         panel.add(label, BorderLayout.CENTER);
         return panel;
     }
 
-    // Swaps a new panel into the "setList" slot of the CardLayout and shows it.
-    // Used by both the initial fetch result and the error fallback.
     private void replaceSetList(JPanel newPanel) {
-        contentPanel.add(newPanel, "setList");
+        long t = System.currentTimeMillis();
+
+        contentPanel.remove(currentSetListPanel);
+        currentSetListPanel = newPanel;
+        contentPanel.add(currentSetListPanel, "setList");
+
         contentLayout.show(contentPanel, "setList");
         contentPanel.revalidate();
         contentPanel.repaint();
+
+        System.out.println("[TIMING] replaceSetList(): " + (System.currentTimeMillis() - t) + " ms");
     }
 }

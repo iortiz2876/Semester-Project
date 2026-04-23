@@ -1,4 +1,2 @@
-P-A-022|Jigglypuff|https://assets.tcgdex.net/en/tcgp/P-A/022|None|—
-sm12-165|Mega Lopunny & Jigglypuff GX|https://assets.tcgdex.net/en/sm/sm12/165|Ultra Rare|—
-swsh5-6|Kricketune V|https://assets.tcgdex.net/en/swsh/swsh5/6|Holo Rare V|—
-ex7-16|Dark Muk|https://assets.tcgdex.net/en/ex/ex7/16|Rare|—
+ex12-11|Muk|https://assets.tcgdex.net/en/ex/ex12/11|Rare|—
+gym2-26|Koga's Muk|https://assets.tcgdex.net/en/gym/gym2/26|Rare|—

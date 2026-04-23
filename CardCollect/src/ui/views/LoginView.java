@@ -2,6 +2,7 @@ package ui.views;
 
 import model.User;
 import storage.UserStorage;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -100,6 +101,7 @@ public class LoginView extends JPanel {
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 loginButton.setBackground(new Color(80, 100, 150));
             }
+
             public void mouseExited(java.awt.event.MouseEvent e) {
                 loginButton.setBackground(new Color(60, 80, 120));
             }
@@ -126,6 +128,7 @@ public class LoginView extends JPanel {
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 registerButton.setBackground(new Color(75, 75, 95));
             }
+
             public void mouseExited(java.awt.event.MouseEvent e) {
                 registerButton.setBackground(new Color(55, 55, 70));
             }
@@ -161,14 +164,40 @@ public class LoginView extends JPanel {
             return;
         }
 
-        // Check credentials
-        User user = UserStorage.authenticate(username, password);
-        if (user != null) {
-            showSuccess("Login successful!");
-            callback.onLoginSuccess(user);
-        } else {
-            showError("Invalid username or password");
-        }
+        showSuccess("Signing in...");
+
+        new SwingWorker<User, Void>() {
+            private long authStart;
+
+            @Override
+            protected User doInBackground() {
+                authStart = System.currentTimeMillis();
+                return UserStorage.authenticate(username, password);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    long authEnd = System.currentTimeMillis();
+                    System.out.println("[TIMING] UserStorage.authenticate(): " + (authEnd - authStart) + " ms");
+
+                    User user = get();
+                    if (user != null) {
+                        showSuccess("Login successful!");
+
+                        long callbackStart = System.currentTimeMillis();
+                        callback.onLoginSuccess(user);
+                        long callbackEnd = System.currentTimeMillis();
+                        System.out.println("[TIMING] onLoginSuccess callback: " + (callbackEnd - callbackStart) + " ms");
+                    } else {
+                        showError("Invalid username or password");
+                    }
+                } catch (Exception e) {
+                    showError("Login failed");
+                    e.printStackTrace();
+                }
+            }
+        }.execute();
     }
 
     // Validates the fields and tries to create a new account.
@@ -193,11 +222,18 @@ public class LoginView extends JPanel {
             return;
         }
 
-        // Attempt registration
+        long registerStart = System.currentTimeMillis();
         User user = UserStorage.register(username, password);
+        long registerEnd = System.currentTimeMillis();
+        System.out.println("[TIMING] UserStorage.register(): " + (registerEnd - registerStart) + " ms");
+
         if (user != null) {
             showSuccess("Account created! Logging in...");
+
+            long callbackStart = System.currentTimeMillis();
             callback.onLoginSuccess(user);
+            long callbackEnd = System.currentTimeMillis();
+            System.out.println("[TIMING] onLoginSuccess after register: " + (callbackEnd - callbackStart) + " ms");
         } else {
             showError("Username is already taken");
         }

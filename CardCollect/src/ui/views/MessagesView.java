@@ -7,6 +7,7 @@ import storage.UserStorage;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
@@ -18,6 +19,7 @@ public class MessagesView extends JPanel {
     private final JList<User> userList = new JList<>(userListModel);
     private final JPanel conversationPanel = new JPanel();
     private final JTextArea messageInput = new JTextArea(3, 20);
+
     private final JLabel conversationTitle = new JLabel("Select an account to start messaging");
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("MMM d, yyyy h:mm a");
 
@@ -36,7 +38,7 @@ public class MessagesView extends JPanel {
         header.setBackground(new Color(30, 30, 40));
         header.setBorder(BorderFactory.createEmptyBorder(12, 15, 12, 15));
 
-        JLabel title = new JLabel("💬 Messages");
+        JLabel title = new JLabel("Messages");
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Arial", Font.BOLD, 18));
         header.add(title, BorderLayout.WEST);
@@ -72,24 +74,44 @@ public class MessagesView extends JPanel {
         conversationTitle.setForeground(Color.WHITE);
         conversationTitle.setFont(new Font("Arial", Font.BOLD, 16));
         conversationTitle.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-        conversationContainer.add(conversationTitle, BorderLayout.NORTH);
+       conversationContainer.add(conversationTitle, BorderLayout.NORTH);
 
         conversationPanel.setLayout(new BoxLayout(conversationPanel, BoxLayout.Y_AXIS));
         conversationPanel.setBackground(new Color(40, 40, 50));
-        conversationScroll = new JScrollPane(conversationPanel);        conversationScroll.setBorder(BorderFactory.createLineBorder(new Color(70, 70, 90)));
+        conversationScroll = new JScrollPane(conversationPanel);
+        conversationScroll.setBorder(BorderFactory.createLineBorder(new Color(70, 70, 90)));
         conversationContainer.add(conversationScroll, BorderLayout.CENTER);
 
         JPanel composer = new JPanel(new BorderLayout(8, 8));
         composer.setBackground(new Color(40, 40, 50));
+
         messageInput.setLineWrap(true);
         messageInput.setWrapStyleWord(true);
+
+        // Enter = send message
+        // Shift + Enter = new line
+        InputMap inputMap = messageInput.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap actionMap = messageInput.getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("ENTER"), "sendMessage");
+        actionMap.put("sendMessage", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendCurrentMessage();
+            }
+        });
+
+        inputMap.put(KeyStroke.getKeyStroke("shift ENTER"), "insert-break");
+
         JScrollPane inputScroll = new JScrollPane(messageInput);
+
         JButton sendButton = new JButton("Send");
         sendButton.setBackground(new Color(60, 80, 120));
         sendButton.setForeground(Color.WHITE);
         sendButton.setFocusPainted(false);
         sendButton.setBorderPainted(false);
         sendButton.addActionListener(e -> sendCurrentMessage());
+
         composer.add(inputScroll, BorderLayout.CENTER);
         composer.add(sendButton, BorderLayout.EAST);
         conversationContainer.add(composer, BorderLayout.SOUTH);
@@ -101,6 +123,7 @@ public class MessagesView extends JPanel {
         refreshUsers();
         startAutoRefresh();
     }
+
     private void startAutoRefresh() {
         refreshTimer = new Timer(1000, e -> {
             User selectedUser = userList.getSelectedValue();
@@ -154,6 +177,7 @@ public class MessagesView extends JPanel {
         lastSeenMessageId = messages.isEmpty() ? null : messages.get(messages.size() - 1).id;
 
         refreshConversation();
+        messageInput.requestFocusInWindow();
     }
 
     private void refreshConversation() {
