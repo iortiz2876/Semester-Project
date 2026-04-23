@@ -7,12 +7,10 @@ import java.util.List;
 import java.util.UUID;
 
 // Handles reading and writing user accounts to a flat file.
-// Works the same way as CardStorage — one user per line, pipe-delimited fields.
+// Works the same way as CardStorage, one user per line, pipe-delimited fields.
 //
 // File format per line:  id|username|password
-//
-// Passwords are stored in plain text for simplicity. In a real application
-// you'd want to hash them with something like BCrypt before saving.
+
 public class UserStorage {
 
     private static final String USERS_FILE = "users.txt";
