@@ -2,7 +2,9 @@ package storage;
 
 import model.User;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,12 +17,22 @@ public class UserStorage {
 
     private static final String USERS_FILE = "users.txt";
 
+
+    private static String decode(String text) {
+        return new String(Base64.getDecoder().decode(text), StandardCharsets.UTF_8);
+    }
+    private static String encode(String text) {
+        return Base64.getEncoder().encodeToString(text.getBytes(StandardCharsets.UTF_8));
+    }
+
     // Attempts to log in with the given credentials.
     // Returns the matching User if the username and password are correct, null otherwise.
     public static User authenticate(String username, String password) {
         List<User> users = loadUsers();
         for (User user : users) {
-            if (user.username.equals(username) && user.password.equals(password)) {
+            String decodedPassword = decode(user.password);
+
+            if (user.username.equals(username) && decodedPassword.equals(password)) {
                 return user;
             }
         }
@@ -40,7 +52,7 @@ public class UserStorage {
 
         // Generate a unique id for the new user
         String id = UUID.randomUUID().toString().substring(0, 8);
-        User newUser = new User(id, username, password);
+        User newUser = new User(id, username, encode(password));
         users.add(newUser);
         saveUsers(users);
         return newUser;

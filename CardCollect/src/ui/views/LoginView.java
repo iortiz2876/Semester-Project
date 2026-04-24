@@ -5,6 +5,8 @@ import storage.UserStorage;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 // Login screen shown when the application first launches.
 // Contains username and password fields, a login button, and a register button.
@@ -22,6 +24,7 @@ public class LoginView extends JPanel {
     private final JTextField usernameField;
     private final JPasswordField passwordField;
     private final JLabel statusLabel;
+
 
     // Callback interface so the main frame knows when login succeeds.
     // The main frame passes a lambda that receives the authenticated User
@@ -158,6 +161,7 @@ public class LoginView extends JPanel {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
 
+
         // Basic field validation
         if (username.isEmpty() || password.isEmpty()) {
             showError("Please enter both username and password");
@@ -223,6 +227,7 @@ public class LoginView extends JPanel {
         }
 
         long registerStart = System.currentTimeMillis();
+
         User user = UserStorage.register(username, password);
         long registerEnd = System.currentTimeMillis();
         System.out.println("[TIMING] UserStorage.register(): " + (registerEnd - registerStart) + " ms");

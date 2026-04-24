@@ -5,7 +5,7 @@ import storage.CardStorage;
 import java.util.List;
 
 // Displays the user's saved collection. All the layout and tile-building lives in
-// SavedCardsView — this class just points the base at the collection storage methods.
+// SavedCardsView: this class just points the base at the collection storage methods.
 public class CollectionView extends SavedCardsView {
 
     @Override
