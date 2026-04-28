@@ -76,6 +76,9 @@ public class CardStorage {
     public static boolean isInCollection(String cardId) {
         return loadCollection().stream().anyMatch(c -> c.id.equals(cardId));
     }
+    public static List<SavedCard> loadCollectionForUser(String userId) {
+        return loadFromFile("collection_" + userId + ".txt");
+    }
 
     // -------------------------
     // Wishlist

@@ -198,7 +198,7 @@ public class CardDetailDialog extends JDialog {
         fieldLabel.setFont(new Font("Arial", Font.BOLD, 12));
 
         // The value (right side); show an em-dash placeholder if there's no data
-        JLabel valueLabel = new JLabel(value.isEmpty() ? "—" : value);
+        JLabel valueLabel = new JLabel(value.isEmpty() ? "-" : value);
         valueLabel.setForeground(Color.WHITE);
         valueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
 
