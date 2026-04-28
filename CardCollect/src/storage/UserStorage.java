@@ -58,11 +58,6 @@ public class UserStorage {
         return newUser;
     }
 
-    // Checks whether a username is already registered in the system.
-    public static boolean usernameExists(String username) {
-        return loadUsers().stream().anyMatch(u -> u.username.equalsIgnoreCase(username));
-    }
-
     public static List<User> getAllUsers() {
         return new ArrayList<>(loadUsers());
     }

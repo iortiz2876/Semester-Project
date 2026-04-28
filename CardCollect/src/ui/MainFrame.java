@@ -61,6 +61,7 @@ public class MainFrame extends JFrame {
         CollectionView collectionView = new CollectionView();
         WishlistView wishlistView = new WishlistView();
         MessagesView messagesView = new MessagesView(currentUser);
+        PricesView pricesView = new PricesView();
         UserCollectionsView userCollectionsView = new UserCollectionsView(currentUser);
 
         sidebar.add(createSidebarButton("🔎  Search", "search", null));
@@ -75,7 +76,7 @@ public class MainFrame extends JFrame {
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
         sidebar.add(createSidebarButton("📦  Browse Sets", "sets", null));
         sidebar.add(Box.createRigidArea(new Dimension(0, 8)));
-        sidebar.add(createSidebarButton("💰  Prices", "prices", null));
+        sidebar.add(createSidebarButton("💰  Prices", "prices", pricesView::refreshCards));
 
         sidebar.add(Box.createVerticalGlue());
 
@@ -120,7 +121,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(messagesView, "messages");
         contentPanel.add(userCollectionsView, "users");
         contentPanel.add(new SetsView(this), "sets");
-        contentPanel.add(new PricesView(), "prices");
+        contentPanel.add(pricesView, "prices");
 
         setLayout(new BorderLayout());
         add(sidebar, BorderLayout.WEST);

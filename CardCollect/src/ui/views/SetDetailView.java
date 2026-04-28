@@ -125,14 +125,8 @@ public class SetDetailView extends PaginatedGridView<CardResult> {
         nameLabel.setFont(new Font("Arial", Font.BOLD, 11));
         nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Starts as a placeholder; the background fetch below will update it
-        JLabel priceLabel = new JLabel("Loading price...", SwingConstants.CENTER);
-        priceLabel.setForeground(new Color(100, 210, 100)); // green to read as money
-        priceLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-        priceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         southPanel.add(nameLabel);
-        southPanel.add(priceLabel);
 
         panel.add(imageLabel, BorderLayout.CENTER);
         panel.add(southPanel, BorderLayout.SOUTH);
@@ -155,19 +149,6 @@ public class SetDetailView extends PaginatedGridView<CardResult> {
             }
         });
 
-        // Fetch market price in the background using the shared price executor.
-        // Using the executor (rather than a SwingWorker per card) caps concurrent
-        // requests at the pool size, so 30 cards on a page won't fire 30 simultaneous calls.
-        priceExecutor.submit(() -> {
-            try {
-                String price = TCGDexClient.getCardMarketPrice(card.id);
-                SwingUtilities.invokeLater(() ->
-                        priceLabel.setText(price.equals("—") ? "Price: N/A" : "Market: " + price)
-                );
-            } catch (Exception e) {
-                SwingUtilities.invokeLater(() -> priceLabel.setText("Price: N/A"));
-            }
-        });
 
         return panel;
     }

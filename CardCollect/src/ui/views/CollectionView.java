@@ -10,7 +10,7 @@ public class CollectionView extends SavedCardsView {
 
     @Override
     protected String getTitle() {
-        return "⭐ My Collection";
+        return "My Collection";
     }
 
     @Override

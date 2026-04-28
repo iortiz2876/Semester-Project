@@ -5,6 +5,10 @@ import model.CardResult;
 import model.SavedCard;
 import ui.WrapLayout;
 import ui.components.CardDetailDialog;
+import ui.components.MiniPriceChartPanel;
+import java.util.ArrayList;
+import ui.components.MiniPriceChartPanel;
+import util.PriceHistoryGenerator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -80,6 +84,30 @@ public abstract class SavedCardsView extends JPanel {
         refresh();
     }
 
+    private java.util.List<Double> generateMiniHistory(String marketPrice) {
+        java.util.List<Double> history = new ArrayList<>();
+
+        double value;
+        try {
+            value = Double.parseDouble(marketPrice.replace("$", "").replace(",", "").trim());
+        } catch (Exception e) {
+            value = 10 + Math.random() * 40;
+        }
+
+        double start = value * (0.82 + Math.random() * 0.10);
+
+        for (int i = 0; i < 6; i++) {
+            start += (Math.random() * 4) - 2;
+            if (start < 1) {
+                start = 1;
+            }
+            history.add(Math.round(start * 100.0) / 100.0);
+        }
+
+        history.add(Math.round(value * 100.0) / 100.0);
+        return history;
+    }
+
     public void refresh() {
         cardGridPanel.removeAll();
 
@@ -107,7 +135,7 @@ public abstract class SavedCardsView extends JPanel {
     private JPanel buildCardPanel(SavedCard card) {
         JPanel panel = new JPanel(new BorderLayout(4, 4));
         panel.setBackground(new Color(55, 55, 70));
-        panel.setPreferredSize(new Dimension(180, 300));
+        panel.setPreferredSize(new Dimension(180, 345));
         panel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
         panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
@@ -171,6 +199,11 @@ public abstract class SavedCardsView extends JPanel {
                         : "Price: " + card.marketPrice,
                 SwingConstants.CENTER
         );
+
+        java.util.List<Double> history = PriceHistoryGenerator.getHistoryForCard(card);
+        MiniPriceChartPanel miniChart = new MiniPriceChartPanel(history);
+        miniChart.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         priceLabel.setForeground(new Color(200, 200, 220));
         priceLabel.setFont(new Font("Arial", Font.PLAIN, 11));
 
@@ -198,6 +231,8 @@ public abstract class SavedCardsView extends JPanel {
         bottom.add(nameLabel);
         bottom.add(Box.createRigidArea(new Dimension(0, 2)));
         bottom.add(priceLabel);
+        bottom.add(Box.createRigidArea(new Dimension(0, 4)));
+        bottom.add(miniChart);
 
         if (canRemoveCards()) {
             bottom.add(Box.createRigidArea(new Dimension(0, 4)));

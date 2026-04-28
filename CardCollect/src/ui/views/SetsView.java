@@ -119,7 +119,7 @@ public class SetsView extends JPanel {
         JPanel view = new JPanel(new BorderLayout());
         view.setBackground(new Color(40, 40, 50));
 
-        JLabel title = new JLabel("📦 Browse Sets  (" + allSets.size() + " sets)");
+        JLabel title = new JLabel("Browse Sets  (" + allSets.size() + " sets)");
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Arial", Font.BOLD, 20));
         title.setBorder(BorderFactory.createEmptyBorder(20, 20, 15, 20));

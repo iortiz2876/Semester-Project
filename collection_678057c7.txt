@@ -1,0 +1,4 @@
+base1-1|Alakazam|https://assets.tcgdex.net/en/base/base1/1|Rare|—
+base1-2|Blastoise|https://assets.tcgdex.net/en/base/base1/2|Rare|—
+base1-8|Machamp|https://assets.tcgdex.net/en/base/base1/8|Rare|—
+base1-6|Gyarados|https://assets.tcgdex.net/en/base/base1/6|Rare|—

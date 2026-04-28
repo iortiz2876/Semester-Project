@@ -10,7 +10,7 @@ public class WishlistView extends SavedCardsView {
 
     @Override
     protected String getTitle() {
-        return "☆ My Wishlist";
+        return "My Wishlist";
     }
 
     @Override
