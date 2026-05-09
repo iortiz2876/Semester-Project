@@ -16,6 +16,7 @@ public class PriceChartPanel extends JPanel {
         setBorder(BorderFactory.createLineBorder(new Color(70, 70, 90)));
     }
 
+    //sets the labels and prices for the chart
     public void setPriceHistory(List<String> labels, List<Double> prices) {
         this.labels = (labels != null) ? labels : new ArrayList<>();
         this.prices = (prices != null) ? prices : new ArrayList<>();
@@ -36,6 +37,7 @@ public class PriceChartPanel extends JPanel {
         int topPad = 25;
         int bottomPad = 45;
 
+        //shows message if there is not enough data
         if (prices == null || prices.size() < 2) {
             g2.setColor(Color.LIGHT_GRAY);
             g2.drawString("No price history available", 20, 25);
@@ -76,6 +78,7 @@ public class PriceChartPanel extends JPanel {
         double firstPrice = prices.get(0);
         double lastPrice = prices.get(prices.size() - 1);
 
+        //changes line color depending on price change
         if (lastPrice > firstPrice) {
             g2.setColor(new Color(0, 200, 0));
         } else if (lastPrice < firstPrice) {
@@ -101,6 +104,8 @@ public class PriceChartPanel extends JPanel {
         }
 
         g2.setColor(new Color(220, 220, 230));
+
+        //draws the labels under the chart
         for (int i = 0; i < labels.size() && i < prices.size(); i++) {
             int x = graphX + (i * graphW / (n - 1));
             String label = labels.get(i);
@@ -112,3 +117,4 @@ public class PriceChartPanel extends JPanel {
         g2.dispose();
     }
 }
+

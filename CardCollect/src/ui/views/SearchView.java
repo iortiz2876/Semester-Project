@@ -8,8 +8,7 @@ import java.awt.*;
 import java.util.List;
 
 // Search view: user types a name, we hit the API, results show up in the paginated grid.
-// All the grid, scroll pane, and pagination boilerplate now lives in PaginatedGridView —
-// this class just owns the search bar on top and the doSearch() logic.
+// All the grid, scroll pane, and pagination boilerplate now lives in PaginatedGridView
 public class SearchView extends PaginatedGridView<CardResult> {
 
     private final JTextField searchField;
@@ -19,7 +18,7 @@ public class SearchView extends PaginatedGridView<CardResult> {
         super(); // sets up the grid, scroll pane, and pagination bar
         this.parentFrame = parentFrame;
 
-        // ─── Search bar (top) ────────────────────────────────────────
+        //search bar
         searchField = new JTextField();
         JButton searchButton = new JButton("Search");
 
@@ -62,7 +61,6 @@ public class SearchView extends PaginatedGridView<CardResult> {
         cardGridPanel.revalidate();
         cardGridPanel.repaint();
 
-        // SwingWorker handles the EDT-off / EDT-on thread switching
         SwingWorker<List<CardResult>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<CardResult> doInBackground() throws Exception {
@@ -72,7 +70,6 @@ public class SearchView extends PaginatedGridView<CardResult> {
 
             @Override
             protected void done() {
-                // Back on the EDT — safe to touch Swing
                 try {
                     // Hand the results to the base class; it takes care of paging
                     setItems(get());

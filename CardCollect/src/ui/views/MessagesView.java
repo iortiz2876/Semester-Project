@@ -23,7 +23,7 @@ public class MessagesView extends JPanel {
     private final JLabel conversationTitle = new JLabel("Select an account to start messaging");
     private final SimpleDateFormat timeFormat = new SimpleDateFormat("MMM d, yyyy h:mm a");
 
-    // refresh for new messages
+    //refreshes for new messages
     private Timer refreshTimer;
     private String lastSeenMessageId = null;
     private final JScrollPane conversationScroll;
@@ -48,6 +48,8 @@ public class MessagesView extends JPanel {
         userList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         userList.setBackground(new Color(50, 50, 65));
         userList.setForeground(Color.WHITE);
+
+        //shows usernames in the list
         userList.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -59,6 +61,8 @@ public class MessagesView extends JPanel {
                 return label;
             }
         });
+
+        //loads chat when another user is clicked
         userList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 refreshConversation();
@@ -74,7 +78,7 @@ public class MessagesView extends JPanel {
         conversationTitle.setForeground(Color.WHITE);
         conversationTitle.setFont(new Font("Arial", Font.BOLD, 16));
         conversationTitle.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-       conversationContainer.add(conversationTitle, BorderLayout.NORTH);
+        conversationContainer.add(conversationTitle, BorderLayout.NORTH);
 
         conversationPanel.setLayout(new BoxLayout(conversationPanel, BoxLayout.Y_AXIS));
         conversationPanel.setBackground(new Color(40, 40, 50));
@@ -88,8 +92,8 @@ public class MessagesView extends JPanel {
         messageInput.setLineWrap(true);
         messageInput.setWrapStyleWord(true);
 
-        // Enter = send message
-        // Shift + Enter = new line
+        //enter sends message
+        //shift enter makes new line
         InputMap inputMap = messageInput.getInputMap(JComponent.WHEN_FOCUSED);
         ActionMap actionMap = messageInput.getActionMap();
 
@@ -132,6 +136,7 @@ public class MessagesView extends JPanel {
             List<Message> messages = MessageStorage.getConversation(currentUser.id, selectedUser.id);
             String newestId = messages.isEmpty() ? null : messages.get(messages.size() - 1).id;
 
+            //only refreshes if there is a new message
             if (!java.util.Objects.equals(newestId, lastSeenMessageId)) {
                 lastSeenMessageId = newestId;
                 refreshConversation();
@@ -145,6 +150,8 @@ public class MessagesView extends JPanel {
         userListModel.clear();
         List<User> users = UserStorage.getAllUsers();
         users.sort(Comparator.comparing(u -> u.username.toLowerCase()));
+
+        //adds every user except the current one
         for (User user : users) {
             if (!user.id.equals(currentUser.id)) {
                 userListModel.addElement(user);
@@ -170,6 +177,7 @@ public class MessagesView extends JPanel {
             return;
         }
 
+        //saves the message and clears the box
         MessageStorage.sendMessage(currentUser.id, selectedUser.id, text);
         messageInput.setText("");
 
@@ -204,6 +212,7 @@ public class MessagesView extends JPanel {
                 empty.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
                 conversationPanel.add(empty);
             } else {
+                //adds each message bubble to the screen
                 for (Message message : messages) {
                     conversationPanel.add(buildBubble(message));
                     conversationPanel.add(Box.createRigidArea(new Dimension(0, 8)));
@@ -214,6 +223,7 @@ public class MessagesView extends JPanel {
         conversationPanel.revalidate();
         conversationPanel.repaint();
 
+        //scrolls to the newest message
         SwingUtilities.invokeLater(() -> {
             JScrollBar bar = conversationScroll.getVerticalScrollBar();
             bar.setValue(bar.getMaximum());
@@ -247,6 +257,7 @@ public class MessagesView extends JPanel {
         stamp.setForeground(new Color(215, 215, 225));
         stamp.setFont(new Font("Arial", Font.PLAIN, 11));
 
+        //puts the message parts inside the bubble
         bubble.add(sender);
         bubble.add(Box.createRigidArea(new Dimension(0, 4)));
         bubble.add(body);

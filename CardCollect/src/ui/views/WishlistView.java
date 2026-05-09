@@ -5,7 +5,7 @@ import storage.CardStorage;
 import java.util.List;
 
 // Displays the user's wishlist. All the layout and tile-building lives in
-// SavedCardsView — this class just points the base at the wishlist storage methods.
+// SavedCardsView - this class just points the base at the wishlist storage methods.
 public class WishlistView extends SavedCardsView {
 
     @Override

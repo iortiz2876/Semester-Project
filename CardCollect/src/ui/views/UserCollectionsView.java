@@ -53,6 +53,7 @@ public class UserCollectionsView extends JPanel {
         refreshUsers();
     }
 
+    //loads all other users into the list
     public void refreshUsers() {
         userListModel.clear();
 
@@ -74,6 +75,7 @@ public class UserCollectionsView extends JPanel {
                     }
                 }
             }
+
             userList.setSelectedIndex(0);
         } else {
             selectedUser = null;
@@ -81,6 +83,7 @@ public class UserCollectionsView extends JPanel {
         }
     }
 
+    //sets up the user list on the left
     private void setupUserList() {
         userList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         userList.setBackground(new Color(50, 50, 65));
@@ -103,6 +106,7 @@ public class UserCollectionsView extends JPanel {
             }
         });
 
+        //changes collection when a user is clicked
         userList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 selectedUser = userList.getSelectedValue();
@@ -117,8 +121,10 @@ public class UserCollectionsView extends JPanel {
             if (selectedUser == null) {
                 return "Select a user";
             }
+
             return selectedUser.username + "'s Collection";
         }
+
         @Override
         protected boolean showCardDetailsOnClick() {
             return false;
@@ -129,6 +135,7 @@ public class UserCollectionsView extends JPanel {
             if (selectedUser == null) {
                 return "Select a user on the left to view their collection.";
             }
+
             return selectedUser.username + " has no cards in their collection yet.";
         }
 
@@ -137,6 +144,7 @@ public class UserCollectionsView extends JPanel {
             if (selectedUser == null) {
                 return Collections.emptyList();
             }
+
             return CardStorage.loadCollectionForUser(selectedUser.id);
         }
 
@@ -153,6 +161,7 @@ public class UserCollectionsView extends JPanel {
             if (selectedUser == null || card == null) {
                 return;
             }
+
             showCardActions(selectedUser, card);
         }
 
@@ -162,6 +171,7 @@ public class UserCollectionsView extends JPanel {
         }
     }
 
+    //shows options for trade or buy
     private void showCardActions(User owner, SavedCard wantedCard) {
         String[] options = {"Trade for this card", "Buy this card", "Cancel"};
 
@@ -183,6 +193,7 @@ public class UserCollectionsView extends JPanel {
         }
     }
 
+    //sends a trade message to the card owner
     private void sendTradeRequest(User owner, SavedCard wantedCard) {
         List<SavedCard> myCards = CardStorage.loadCollection();
 
@@ -257,6 +268,7 @@ public class UserCollectionsView extends JPanel {
         );
     }
 
+    //sends a buy offer message to the card owner
     private void sendBuyRequest(User owner, SavedCard wantedCard) {
         String amount = JOptionPane.showInputDialog(
                 this,
@@ -323,14 +335,17 @@ public class UserCollectionsView extends JPanel {
         );
     }
 
+    //lets user pick one of their cards to offer
     private SavedCard chooseMyCard(List<SavedCard> myCards) {
         DefaultListModel<SavedCard> model = new DefaultListModel<>();
+
         for (SavedCard card : myCards) {
             model.addElement(card);
         }
 
         JList<SavedCard> list = new JList<>(model);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
         list.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(
@@ -342,6 +357,7 @@ public class UserCollectionsView extends JPanel {
                 if (value instanceof SavedCard card) {
                     label.setText(card.name + "  (" + safe(card.marketPrice) + ")");
                 }
+
                 return label;
             }
         });
@@ -364,6 +380,7 @@ public class UserCollectionsView extends JPanel {
         return null;
     }
 
+    //returns N/A when value is empty
     private String safe(String value) {
         return (value == null || value.isBlank()) ? "N/A" : value;
     }

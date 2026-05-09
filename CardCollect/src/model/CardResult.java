@@ -1,7 +1,9 @@
 package model;
 
 import javax.swing.ImageIcon;
-
+/*
+*  model for Cards
+* */
 public class CardResult {
     public String name;
     public String id;

@@ -17,7 +17,7 @@ public class CardPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        // ─── Image ─────────────────────────────
+        //Image
         JLabel imageLabel = new JLabel("", SwingConstants.CENTER);
 
         if (card.image != null) {
@@ -27,16 +27,16 @@ public class CardPanel extends JPanel {
             imageLabel.setForeground(Color.WHITE);
         }
 
-        // ─── Name ─────────────────────────────
+        //name
         JLabel nameLabel = new JLabel(card.name, SwingConstants.CENTER);
         nameLabel.setForeground(Color.WHITE);
         nameLabel.setFont(new Font("Arial", Font.BOLD, 11));
 
-        // ─── Mini Chart ───────────────────────
+        // mini price chart
         List<Double> history = generateMiniHistory();
         MiniPriceChartPanel miniChart = new MiniPriceChartPanel(history);
 
-        // ─── Bottom layout (name + chart) ─────
+        //bottom layout (name + chart)
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
         bottomPanel.setOpaque(false);
@@ -51,7 +51,7 @@ public class CardPanel extends JPanel {
         add(imageLabel, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // ─── Click + Hover ────────────────────
+        // click + hover
         addMouseListener(new java.awt.event.MouseAdapter() {
 
             public void mouseClicked(java.awt.event.MouseEvent e) {
@@ -70,7 +70,7 @@ public class CardPanel extends JPanel {
         });
     }
 
-    // ─── Fake price history generator ────────
+    //fake price history generator
     private List<Double> generateMiniHistory() {
         List<Double> history = new ArrayList<>();
 

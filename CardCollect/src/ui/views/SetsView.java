@@ -9,29 +9,24 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-// View that lets the user browse all available card sets, then drill into a set
-// to see its cards. Uses a CardLayout with two screens:
-//   - "setList"   -> paginated grid of all sets
-//   - "setDetail" -> a SetDetailView that handles the paginated card grid
+//shows pokemon card sets
+//lets user click a set to see its cards
 public class SetsView extends JPanel {
 
     private static final int PAGE_SIZE = 15;
-
-    private final JFrame parentFrame;
 
     private final JPanel contentPanel;
     private final CardLayout contentLayout;
     private final SetDetailView setDetailView;
 
-    // Current panel used for the "setList" card so we can replace it cleanly
+    //keeps the current set list panel
     private JPanel currentSetListPanel;
 
-    // Cached set data for pagination
+    //stores all sets for the pages
     private List<String[]> allSets = new ArrayList<>();
     private int currentPage = 0;
 
     public SetsView(JFrame parentFrame) {
-        this.parentFrame = parentFrame;
         setLayout(new BorderLayout());
         setBackground(new Color(40, 40, 50));
 
@@ -39,11 +34,10 @@ public class SetsView extends JPanel {
         contentPanel = new JPanel(contentLayout);
         contentPanel.setBackground(new Color(40, 40, 50));
 
-        // Set list placeholder first so startup always lands here
+        //shows this while sets load
         currentSetListPanel = buildLoadingPanel("Loading sets...");
         contentPanel.add(currentSetListPanel, "setList");
 
-        // Reusable detail view
         setDetailView = new SetDetailView(parentFrame, () -> {
             long t = System.currentTimeMillis();
             contentLayout.show(contentPanel, "setList");
@@ -55,16 +49,12 @@ public class SetsView extends JPanel {
 
         add(contentPanel, BorderLayout.CENTER);
 
-        // Explicitly show the set list on startup
         contentLayout.show(contentPanel, "setList");
 
         loadSets();
     }
 
-    // -------------------------
-    // Data loading
-    // -------------------------
-
+    //loads the set data
     private void loadSets() {
         long loadStart = System.currentTimeMillis();
 
@@ -95,13 +85,11 @@ public class SetsView extends JPanel {
                 }
             }
         };
+
         worker.execute();
     }
 
-    // -------------------------
-    // Pagination / rendering
-    // -------------------------
-
+    //shows one page of sets
     private void showSetPage(int page) {
         if (allSets == null || allSets.isEmpty()) {
             replaceSetList(buildErrorPanel("No sets found."));
@@ -129,6 +117,7 @@ public class SetsView extends JPanel {
         grid.setBackground(new Color(40, 40, 50));
         grid.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
+        //adds set cards for this page
         for (int i = from; i < to; i++) {
             String[] set = allSets.get(i);
             grid.add(buildSetPanel(set[0], set[1], set[2], set[3]));
@@ -148,6 +137,7 @@ public class SetsView extends JPanel {
         replaceSetList(view);
     }
 
+    //makes the bottom page buttons
     private JPanel buildPaginationBar(int totalPages) {
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 8));
         bar.setBackground(new Color(30, 30, 40));
@@ -175,6 +165,7 @@ public class SetsView extends JPanel {
         return bar;
     }
 
+    //makes a page button
     private JButton makePagButton(String text) {
         JButton btn = new JButton(text);
         btn.setBackground(new Color(60, 60, 80));
@@ -199,10 +190,7 @@ public class SetsView extends JPanel {
         return btn;
     }
 
-    // -------------------------
-    // Set tile
-    // -------------------------
-
+    //makes one set tile
     private JPanel buildSetPanel(String setId, String setName, String logoUrl, String cardCount) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -224,7 +212,7 @@ public class SetsView extends JPanel {
         nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel.add(nameLabel);
 
-        // Only visible tiles load logos now, so pagination dramatically reduces startup cost
+        //loads logo if there is one
         if (!logoUrl.isEmpty()) {
             SwingWorker<ImageIcon, Void> logoWorker = new SwingWorker<>() {
                 @Override
@@ -242,7 +230,7 @@ public class SetsView extends JPanel {
                         panel.revalidate();
                         panel.repaint();
                     } catch (Exception e) {
-                        // Leave blank if logo load fails
+                        //leaves it blank if logo fails
                     }
                 }
             };
@@ -254,10 +242,11 @@ public class SetsView extends JPanel {
                 Image scaled = icon.getImage().getScaledInstance(160, 55, Image.SCALE_SMOOTH);
                 logoLabel.setIcon(new ImageIcon(scaled));
             } catch (Exception e) {
-                // Ignore fallback image failure
+                //ignores if backup image fails
             }
         }
 
+        //opens the cards in the set when clicked
         panel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 long t = System.currentTimeMillis();
@@ -280,10 +269,7 @@ public class SetsView extends JPanel {
         return panel;
     }
 
-    // -------------------------
-    // Helpers
-    // -------------------------
-
+    //makes loading screen
     private JPanel buildLoadingPanel(String message) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(40, 40, 50));
@@ -296,6 +282,7 @@ public class SetsView extends JPanel {
         return panel;
     }
 
+    //makes error screen
     private JPanel buildErrorPanel(String message) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(40, 40, 50));
@@ -308,6 +295,7 @@ public class SetsView extends JPanel {
         return panel;
     }
 
+    //replaces the set list page
     private void replaceSetList(JPanel newPanel) {
         long t = System.currentTimeMillis();
 

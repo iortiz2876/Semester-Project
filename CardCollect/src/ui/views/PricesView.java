@@ -76,6 +76,7 @@ public class PricesView extends JPanel {
         refreshCards();
     }
 
+    //loads cards from the collection
     public void refreshCards() {
         cardListModel.clear();
 
@@ -94,6 +95,7 @@ public class PricesView extends JPanel {
         }
     }
 
+    //sets up the list on the left side
     private void setupCardList() {
         cardList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         cardList.setBackground(new Color(50, 50, 65));
@@ -116,6 +118,7 @@ public class PricesView extends JPanel {
             }
         });
 
+        //updates the chart when a card is clicked
         cardList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 SavedCard selected = cardList.getSelectedValue();
@@ -124,6 +127,7 @@ public class PricesView extends JPanel {
         });
     }
 
+    //updates the price info for the selected card
     private void updateSelectedCard(SavedCard card) {
         if (card == null) {
             titleLabel.setText("Select a card to view price history");
@@ -143,6 +147,7 @@ public class PricesView extends JPanel {
         chartPanel.setPriceHistory(labels, history);
     }
 
+    //figures out if the price went up or down
     private String buildTrendText(List<Double> history) {
         if (history == null || history.size() < 2) {
             return "N/A";
@@ -161,6 +166,7 @@ public class PricesView extends JPanel {
         }
     }
 
+    //returns n/a if the value is empty
     private String safe(String value) {
         return (value == null || value.isBlank()) ? "N/A" : value;
     }

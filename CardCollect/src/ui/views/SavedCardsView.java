@@ -17,9 +17,9 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 // Shared base class for any view that displays a list of SavedCards in a scrollable grid
-// (currently CollectionView and WishlistView). Handles the header, count label, grid,
-// scroll pane, refresh loop, and card tile construction. Subclasses just plug in the
-// title, empty-state message, and which storage methods to use.
+//handles the header, count label, grid,
+//scroll pane, refresh loop, and card tile construction. Subclasses just plug in the
+//title, empty-state message, and which storage methods to use.
 public abstract class SavedCardsView extends JPanel {
 
     private final JPanel cardGridPanel;
@@ -84,29 +84,6 @@ public abstract class SavedCardsView extends JPanel {
         refresh();
     }
 
-    private java.util.List<Double> generateMiniHistory(String marketPrice) {
-        java.util.List<Double> history = new ArrayList<>();
-
-        double value;
-        try {
-            value = Double.parseDouble(marketPrice.replace("$", "").replace(",", "").trim());
-        } catch (Exception e) {
-            value = 10 + Math.random() * 40;
-        }
-
-        double start = value * (0.82 + Math.random() * 0.10);
-
-        for (int i = 0; i < 6; i++) {
-            start += (Math.random() * 4) - 2;
-            if (start < 1) {
-                start = 1;
-            }
-            history.add(Math.round(start * 100.0) / 100.0);
-        }
-
-        history.add(Math.round(value * 100.0) / 100.0);
-        return history;
-    }
 
     public void refresh() {
         cardGridPanel.removeAll();

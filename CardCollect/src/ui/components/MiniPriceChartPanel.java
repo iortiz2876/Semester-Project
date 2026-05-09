@@ -19,6 +19,7 @@ public class MiniPriceChartPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        //checks if there is enough data to draw
         if (prices == null || prices.size() < 2) {
             return;
         }
@@ -40,6 +41,7 @@ public class MiniPriceChartPanel extends JPanel {
         double firstPrice = prices.get(0);
         double lastPrice = prices.get(prices.size() - 1);
 
+        //sets color based on if price went up or down
         if (lastPrice > firstPrice) {
             g2.setColor(new Color(0, 200, 0));
         } else if (lastPrice < firstPrice) {
@@ -61,6 +63,7 @@ public class MiniPriceChartPanel extends JPanel {
                 g2.drawLine(prevX, prevY, x, y);
             }
 
+            //draws the small point on the chart
             g2.fillOval(x - 2, y - 2, 4, 4);
 
             prevX = x;

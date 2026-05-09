@@ -21,6 +21,7 @@ public class MainFrame extends JFrame {
         showLogin();
     }
 
+    //shows the login screen first
     private void showLogin() {
         LoginView loginView = new LoginView(user -> {
             currentUser = user;
@@ -35,6 +36,7 @@ public class MainFrame extends JFrame {
         add(loginView, BorderLayout.CENTER);
     }
 
+    //logs out and goes back to login
     private void logout() {
         currentUser = null;
         CardStorage.setCurrentUser(null);
@@ -44,6 +46,7 @@ public class MainFrame extends JFrame {
         repaint();
     }
 
+    //sets up the main app screen
     private void initComponents() {
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
@@ -92,6 +95,8 @@ public class MainFrame extends JFrame {
 
         String[] emojiFonts = {"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji"};
         Font emojiFont = new Font("Arial", Font.PLAIN, 13);
+
+        //tries to find a font that can show emojis
         for (String name : emojiFonts) {
             Font f = new Font(name, Font.PLAIN, 13);
             if (!f.getFamily().equals("Dialog")) {
@@ -99,12 +104,14 @@ public class MainFrame extends JFrame {
                 break;
             }
         }
+
         logoutButton.setFont(emojiFont);
 
         logoutButton.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 logoutButton.setBackground(new Color(170, 70, 70));
             }
+
             public void mouseExited(java.awt.event.MouseEvent e) {
                 logoutButton.setBackground(new Color(140, 50, 50));
             }
@@ -115,6 +122,8 @@ public class MainFrame extends JFrame {
 
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
+
+        //adds all the pages to the main panel
         contentPanel.add(new SearchView(this), "search");
         contentPanel.add(collectionView, "collection");
         contentPanel.add(wishlistView, "wishlist");
@@ -128,6 +137,7 @@ public class MainFrame extends JFrame {
         add(contentPanel, BorderLayout.CENTER);
     }
 
+    //makes a button for the sidebar
     private JButton createSidebarButton(String text, String viewName, Runnable onSwitch) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -141,6 +151,7 @@ public class MainFrame extends JFrame {
 
         String[] emojiFonts = {"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji"};
         Font emojiFont = new Font("Arial", Font.PLAIN, 13);
+
         for (String name : emojiFonts) {
             Font f = new Font(name, Font.PLAIN, 13);
             if (!f.getFamily().equals("Dialog")) {
@@ -148,12 +159,15 @@ public class MainFrame extends JFrame {
                 break;
             }
         }
+
         button.setFont(emojiFont);
 
+        //changes button color when mouse is over it
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setBackground(new Color(80, 80, 100));
             }
+
             public void mouseExited(java.awt.event.MouseEvent e) {
                 button.setBackground(new Color(50, 50, 65));
             }

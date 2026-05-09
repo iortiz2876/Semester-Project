@@ -11,14 +11,7 @@ import java.util.Base64;
 // Login screen shown when the application first launches.
 // Contains username and password fields, a login button, and a register button.
 // On successful login, it calls the provided callback to switch to the main app views.
-//
-// Usage in your main frame:
-//   LoginView loginView = new LoginView(user -> {
-//       // user is the authenticated User object
-//       // swap out the login view and load the main app
-//       loadMainApp(user);
-//   });
-//   frame.add(loginView);
+
 public class LoginView extends JPanel {
 
     private final JTextField usernameField;
@@ -26,8 +19,8 @@ public class LoginView extends JPanel {
     private final JLabel statusLabel;
 
 
-    // Callback interface so the main frame knows when login succeeds.
-    // The main frame passes a lambda that receives the authenticated User
+    //callback interface so the main frame knows when login succeeds.
+    //the main frame passes a lambda that receives the authenticated User
     // and swaps in the main app views.
     public interface LoginCallback {
         void onLoginSuccess(User user);
@@ -37,7 +30,6 @@ public class LoginView extends JPanel {
         setLayout(new GridBagLayout()); // centers the form panel in the middle of the window
         setBackground(new Color(40, 40, 50));
 
-        // ─── Form container ──────────────────────────────────────────
         // A smaller panel inside the full-window LoginView so the fields
         // aren't stretched across the entire frame
         JPanel formPanel = new JPanel();
@@ -46,7 +38,7 @@ public class LoginView extends JPanel {
         formPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
         formPanel.setMaximumSize(new Dimension(360, 400));
 
-        // ─── Title ───────────────────────────────────────────────────
+        //tile
         JLabel title = new JLabel("CardCollect");
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Arial", Font.BOLD, 24));
@@ -60,7 +52,7 @@ public class LoginView extends JPanel {
         formPanel.add(subtitle);
         formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // ─── Username field ──────────────────────────────────────────
+        // Username field
         JLabel usernameLabel = new JLabel("Username");
         usernameLabel.setForeground(new Color(180, 180, 210));
         usernameLabel.setFont(new Font("Arial", Font.BOLD, 12));
@@ -74,7 +66,7 @@ public class LoginView extends JPanel {
         formPanel.add(usernameField);
         formPanel.add(Box.createRigidArea(new Dimension(0, 12)));
 
-        // ─── Password field ──────────────────────────────────────────
+        //Password field
         JLabel passwordLabel = new JLabel("Password");
         passwordLabel.setForeground(new Color(180, 180, 210));
         passwordLabel.setFont(new Font("Arial", Font.BOLD, 12));
@@ -88,7 +80,7 @@ public class LoginView extends JPanel {
         formPanel.add(passwordField);
         formPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // ─── Login button ────────────────────────────────────────────
+        //Login button
         JButton loginButton = new JButton("Login");
         loginButton.setBackground(new Color(60, 80, 120));
         loginButton.setForeground(Color.WHITE);
@@ -99,7 +91,7 @@ public class LoginView extends JPanel {
         loginButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         loginButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
 
-        // Hover effect
+        //Hover effect
         loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 loginButton.setBackground(new Color(80, 100, 150));
@@ -115,7 +107,7 @@ public class LoginView extends JPanel {
         formPanel.add(loginButton);
         formPanel.add(Box.createRigidArea(new Dimension(0, 8)));
 
-        // ─── Register button ─────────────────────────────────────────
+        //Register button
         JButton registerButton = new JButton("Create Account");
         registerButton.setBackground(new Color(55, 55, 70));
         registerButton.setForeground(Color.WHITE);
@@ -142,27 +134,25 @@ public class LoginView extends JPanel {
         formPanel.add(registerButton);
         formPanel.add(Box.createRigidArea(new Dimension(0, 16)));
 
-        // ─── Status label (for errors and success messages) ──────────
+        //Status label
         statusLabel = new JLabel(" ");
         statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         formPanel.add(statusLabel);
 
-        // Also allow pressing Enter in the password field to trigger login
+        //also allow pressing Enter in the password field to trigger login
         passwordField.addActionListener(e -> attemptLogin(callback));
 
         add(formPanel);
     }
 
-    // Validates the fields and tries to authenticate against UserStorage.
-    // Shows an error message if the fields are empty or credentials are wrong.
-    // Calls the callback with the authenticated User on success.
+    //validates the fields and tries to authenticate against UserStorage.
     private void attemptLogin(LoginCallback callback) {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
 
 
-        // Basic field validation
+        //basic field validation
         if (username.isEmpty() || password.isEmpty()) {
             showError("Please enter both username and password");
             return;
@@ -204,8 +194,8 @@ public class LoginView extends JPanel {
         }.execute();
     }
 
-    // Validates the fields and tries to create a new account.
-    // Shows an error if the username is taken, or auto-logs in on success.
+
+    //Shows an error if the username is taken, or auto-logs in on success.
     private void attemptRegister(LoginCallback callback) {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
